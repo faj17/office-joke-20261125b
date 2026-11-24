@@ -4,6 +4,9 @@ The whole entry is a single sentence: a meeting that could have been
 an email, with the twist that the email would have needed a meeting
 of its own to explain it. The script validates the line and drops it
 into /output/entry.txt.
+
+Gate: 1-200 chars, exactly one line, one sentence, ends with a full stop.
+No leading or trailing whitespace; no newline or carriage return anywhere.
 """
 
 from pathlib import Path
@@ -21,14 +24,22 @@ MAX_CHARS = 200
 
 
 def validate(line: str) -> str:
-    """Strip and sanity-check the joke; raise ValueError on bad input."""
-    text = line.strip()
+    """Sanity-check the joke; raise ValueError on bad input.
+
+    The entry must be exactly one line: no newline or carriage return
+    anywhere in it, and no leading or trailing whitespace. Input is
+    checked as given, not silently stripped, so a bad line fails loudly
+    instead of being quietly fixed.
+    """
+    if line != line.strip():
+        raise ValueError("joke must have no leading or trailing whitespace")
+    if "\n" in line or "\r" in line:
+        raise ValueError("joke must be a single line (no newline)")
+    text = line
     if not MIN_CHARS <= len(text) <= MAX_CHARS:
         raise ValueError(
             f"joke must be {MIN_CHARS}-{MAX_CHARS} chars, got {len(text)}"
         )
-    if "\n" in text:
-        raise ValueError("joke must be a single line")
     if not text.endswith("."):
         raise ValueError("joke must end with a full stop")
     if ". " in text:
